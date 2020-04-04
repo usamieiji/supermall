@@ -33,25 +33,20 @@
 
   import NavBar from "components/common/navbar/NavBar"
   import TabControl from "components/content/tabControl/TabControl"
-  import GoodsList from "components/content/goods/GoodsList"
-  import Scroll from "components/common/scroll/Scroll"
-  import BackTop from "components/common/backTop/BackTop"
 
   import {getHomeMultidata, getHomeGoods} from "network/home"
-  import {debounce} from "common/utils"
+  import {itemListenerMixin, backTopMixin, otherMixin} from "common/mixin"
 
 
   export default {
     name: "Home",
+    mixins: [itemListenerMixin, backTopMixin, otherMixin],
     components: {
       HomeSwiper,
       RecommendView,
       FeatureView,
       NavBar,
-      TabControl,
-      GoodsList,
-      Scroll,
-      BackTop
+      TabControl
     },
     data() {
       return {
@@ -81,6 +76,7 @@
     },
     deactivated() {
       this.saveY = this.$refs.scroll.getScrollY()
+      this.$bus.$off('itemImageLoad', this.itemImgListener)
     },
     created() {
       this.getHomeMultidata()
@@ -90,10 +86,6 @@
       this.getHomeGoods('sell')
     },
     mounted() {
-      const refresh = debounce(this.$refs.scroll.refresh, 200)
-      this.$bus.$on('itemImageLoad', () => {
-        refresh()
-      })
     },
     methods: {
       //Event listener related
@@ -117,7 +109,7 @@
         this.$refs.scroll.scrollTo(0, 0)
       },
       contentScroll(position) {
-        this.isShowBackTop = (-position.y > 1000)
+        this.listenShowBackTop(position)
 
         this.isTabFixed = (-position.y > this.tabOffsetTop)
       },
